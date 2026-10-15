@@ -1,0 +1,96 @@
+const form = document.getElementById("bookingForm");
+const message = document.getElementById("message");
+const bookingList = document.getElementById("bookingList");
+
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+const today = new Date();
+today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+document.getElementById("date").min = today.toISOString().slice(0, 10);
+
+function saveBookings() {
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+}
+
+function showBookings() {
+    bookingList.innerHTML = "";
+
+    bookings.forEach(booking => {
+        const row = document.createElement("tr");
+
+        [
+            booking.student,
+            booking.teacher,
+            booking.date,
+            booking.time,
+            booking.topic
+        ].forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+
+        const cell = document.createElement("td");
+        const button = document.createElement("button");
+
+        button.textContent = "Отменить";
+
+        button.onclick = function() {
+            bookings = bookings.filter(item => item.id !== booking.id);
+            saveBookings();
+            showBookings();
+            message.textContent = "Запись отменена.";
+        };
+
+        cell.appendChild(button);
+        row.appendChild(cell);
+        bookingList.appendChild(row);
+    });
+}
+
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const student = document.getElementById("student").value.trim();
+    const teacher = document.getElementById("teacher").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const topic = document.getElementById("topic").value.trim();
+
+    if (!student || !teacher || !date || !time || !topic) {
+        message.textContent = "Заполните все поля.";
+        return;
+    }
+
+    if (date < today.toISOString().slice(0, 10)) {
+        message.textContent = "Выберите сегодняшнюю или будущую дату.";
+        return;
+    }
+
+    const conflict = bookings.some(booking =>
+        booking.teacher === teacher &&
+        booking.date === date &&
+        booking.time === time
+    );
+
+    if (conflict) {
+        message.textContent = "Это время уже занято!";
+        return;
+    }
+
+    bookings.push({
+        id: Date.now().toString(),
+        student,
+        teacher,
+        date,
+        time,
+        topic
+    });
+
+    saveBookings();
+    showBookings();
+    form.reset();
+    message.textContent = "Вы успешно записались!";
+});
+
+showBookings();
