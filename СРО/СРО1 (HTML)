@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запись к преподавателю</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Запись к преподавателю</h1>
+        <p>Сервис записи на консультацию</p>
+
+        <h2>Новая запись</h2>
+
+        <form id="bookingForm">
+            <label>Имя студента</label>
+            <input type="text" id="student" required>
+
+            <label>Преподаватель</label>
+            <select id="teacher" required>
+                <option value="">Выберите преподавателя</option>
+                <option>Иванов И.И.</option>
+                <option>Петрова А.А.</option>
+                <option>Сидоров Б.Б.</option>
+            </select>
+
+            <label>Дата</label>
+            <input type="date" id="date" required>
+
+            <label>Время</label>
+            <select id="time" required>
+                <option value="">Выберите время</option>
+                <option>10:00</option>
+                <option>11:00</option>
+                <option>12:00</option>
+                <option>14:00</option>
+                <option>15:00</option>
+            </select>
+
+            <label>Тема консультации</label>
+            <input type="text" id="topic" required>
+
+            <button type="submit">Записаться</button>
+        </form>
+
+        <p id="message"></p>
+
+        <h2>Расписание записей</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Студент</th>
+                        <th>Преподаватель</th>
+                        <th>Дата</th>
+                        <th>Время</th>
+                        <th>Тема</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
