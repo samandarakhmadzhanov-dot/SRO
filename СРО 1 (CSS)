@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f5fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+}
+
+h1, h2 {
+    color: #234a84;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 450px;
+}
+
+input, select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+button {
+    padding: 10px;
+    background: #2864c5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #17458f;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background: #2864c5;
+    color: white;
+}
+
+#message {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 12px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+}
