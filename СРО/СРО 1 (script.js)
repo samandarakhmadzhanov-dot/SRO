@@ -1,96 +1,216 @@
+
+const slots = [
+    { id: 1, teacher: "Иванов", date: "2026-10-20",
+      start: "10:00", end: "10:30" },
+    { id: 2, teacher: "Иванов", date: "2026-10-20",
+      start: "10:30", end: "11:00" },
+    { id: 3, teacher: "Иванов", date: "2026-10-20",
+      start: "11:00", end: "11:30" },
+    { id: 4, teacher: "Петров", date: "2026-10-21",
+      start: "12:00", end: "12:30" },
+    { id: 5, teacher: "Петров", date: "2026-10-21",
+      start: "12:30", end: "13:00" }
+];
+
+let requests = [];
+let nextId = 1;
+
 const form = document.getElementById("bookingForm");
 const message = document.getElementById("message");
-const bookingList = document.getElementById("bookingList");
 
-let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+function renderSchedule() {
+    const schedule = document.getElementById("schedule");
+    schedule.replaceChildren();
 
-const today = new Date();
-today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-document.getElementById("date").min = today.toISOString().slice(0, 10);
+    for (const slot of slots) {
+        const busy = requests.some(request =>
+            request.teacher === slot.teacher &&
+            request.date === slot.date &&
+            request.start < slot.end &&
+            request.end > slot.start
+        );
 
-function saveBookings() {
-    localStorage.setItem("bookings", JSON.stringify(bookings));
+        const card = document.createElement("div");
+        card.className = "slot";
+
+        const title = document.createElement("h3");
+        title.textContent = "Слот №" + slot.id;
+
+        const info = document.createElement("p");
+        info.textContent =
+            slot.teacher + " | " + slot.date + " | " +
+            slot.start + "–" + slot.end;
+
+        const status = document.createElement("p");
+        status.className = busy ? "busy" : "free";
+        status.textContent = busy ? "Занято" : "Свободно";
+
+        card.append(title, info, status);
+        schedule.appendChild(card);
+    }
+
+    updateStats();
 }
 
-function showBookings() {
-    bookingList.innerHTML = "";
+function updateStats() {
+    let free = 0;
 
-    bookings.forEach(booking => {
-        const row = document.createElement("tr");
+    for (const slot of slots) {
+        const busy = requests.some(request =>
+            request.teacher === slot.teacher &&
+            request.date === slot.date &&
+            request.start < slot.end &&
+            request.end > slot.start
+        );
 
-        [
-            booking.student,
-            booking.teacher,
-            booking.date,
-            booking.time,
-            booking.topic
-        ].forEach(value => {
-            const cell = document.createElement("td");
-            cell.textContent = value;
-            row.appendChild(cell);
+        if (!busy) free++;
+    }
+
+    document.getElementById("totalSlots").textContent = slots.length;
+    document.getElementById("freeSlots").textContent = free;
+    document.getElementById("totalRequests").textContent = requests.length;
+}
+
+function renderRequests() {
+    const container = document.getElementById("requests");
+    const search = document.getElementById("search").value
+        .trim().toLocaleLowerCase("ru");
+
+    container.replaceChildren();
+
+    const filtered = requests.filter(request =>
+        request.student.toLocaleLowerCase("ru").includes(search)
+    );
+
+    if (filtered.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "Заявки не найдены.";
+        container.appendChild(empty);
+    }
+
+    for (const request of filtered) {
+        const card = document.createElement("div");
+        card.className = "request";
+
+        const details = document.createElement("p");
+        details.textContent =
+            "Заявка №" + request.id +
+            " | Студент: " + request.student +
+            " | Тема: " + request.topic +
+            " | Преподаватель: " + request.teacher +
+            " | Дата: " + request.date +
+            " | Время: " + request.start + "–" + request.end;
+
+        const button = document.createElement("button");
+        button.className = "cancel";
+        button.textContent = "Отменить заявку";
+
+        button.addEventListener("click", () => {
+            requests = requests.filter(item => item.id !== request.id);
+            renderAll();
+            showMessage("Заявка отменена. Время освобождено.", true);
         });
 
-        const cell = document.createElement("td");
-        const button = document.createElement("button");
+        card.append(details, button);
+        container.appendChild(card);
+    }
+}
 
-        button.textContent = "Отменить";
+function showMessage(text, success) {
+    message.textContent = text;
+    message.style.color = success ? "#15803d" : "#dc2626";
+}
 
-        button.onclick = function() {
-            bookings = bookings.filter(item => item.id !== booking.id);
-            saveBookings();
-            showBookings();
-            message.textContent = "Запись отменена.";
-        };
-
-        cell.appendChild(button);
-        row.appendChild(cell);
-        bookingList.appendChild(row);
-    });
+function renderAll() {
+    renderSchedule();
+    renderRequests();
 }
 
 form.addEventListener("submit", function(event) {
     event.preventDefault();
 
     const student = document.getElementById("student").value.trim();
+    const topic = document.getElementById("topic").value.trim();
     const teacher = document.getElementById("teacher").value;
     const date = document.getElementById("date").value;
-    const time = document.getElementById("time").value;
-    const topic = document.getElementById("topic").value.trim();
+    const start = document.getElementById("start").value;
+    const end = document.getElementById("end").value;
 
-    if (!student || !teacher || !date || !time || !topic) {
-        message.textContent = "Заполните все поля.";
+    if (!student || !topic || !teacher || !date || !start || !end) {
+        showMessage("Заполните все поля.", false);
         return;
     }
 
-    if (date < today.toISOString().slice(0, 10)) {
-        message.textContent = "Выберите сегодняшнюю или будущую дату.";
+    if (student.length > 100 || topic.length > 100) {
+        showMessage("Имя и тема не должны превышать 100 символов.", false);
         return;
     }
 
-    const conflict = bookings.some(booking =>
-        booking.teacher === teacher &&
-        booking.date === date &&
-        booking.time === time
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        showMessage("Введите корректную дату.", false);
+        return;
+    }
+
+    const dateObject = new Date(date + "T12:00:00");
+
+    if (Number.isNaN(dateObject.getTime()) ||
+        dateObject.toISOString().slice(0, 10) !== date) {
+        showMessage("Такой даты не существует.", false);
+        return;
+    }
+
+    if (date < "2026-10-18") {
+        showMessage("Нельзя записаться на прошедшую дату.", false);
+        return;
+    }
+
+    if (start >= end) {
+        showMessage("Время окончания должно быть позже начала.", false);
+        return;
+    }
+
+    const overlaps = requests.some(request =>
+        request.teacher === teacher &&
+        request.date === date &&
+        start < request.end &&
+        end > request.start
     );
 
-    if (conflict) {
-        message.textContent = "Это время уже занято!";
+    if (overlaps) {
+        showMessage("Ошибка: это время пересекается с другой записью.", false);
         return;
     }
 
-    bookings.push({
-        id: Date.now().toString(),
+    const slotExists = slots.some(slot =>
+        slot.teacher === teacher &&
+        slot.date === date &&
+        start >= slot.start &&
+        end <= slot.end
+    );
+
+    if (!slotExists) {
+        showMessage(
+            "Выберите время внутри свободного слота расписания.",
+            false
+        );
+        return;
+    }
+
+    requests.push({
+        id: nextId++,
         student,
+        topic,
         teacher,
         date,
-        time,
-        topic
+        start,
+        end
     });
 
-    saveBookings();
-    showBookings();
     form.reset();
-    message.textContent = "Вы успешно записались!";
+    renderAll();
+    showMessage("Запись успешно создана!", true);
 });
 
-showBookings();
+document.getElementById("search").addEventListener("input", renderRequests);
+
+renderAll();
