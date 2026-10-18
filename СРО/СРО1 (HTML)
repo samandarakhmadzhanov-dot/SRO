@@ -1,71 +1,88 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Запись к преподавателю</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Сервис записи на консультацию</title>
+    <link rel="stylesheet" href="сро.css">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Запись к преподавателю</h1>
-        <p>Сервис записи на консультацию</p>
+<header>
+    <h1>Сервис записи на консультацию</h1>
+    <p>Запись студентов к преподавателям</p>
+</header>
 
-        <h2>Новая запись</h2>
+<main>
+    <section class="stats">
+        <div class="stat">
+            <h3 id="totalSlots">0</h3>
+            <p>Всего слотов</p>
+        </div>
+        <div class="stat">
+            <h3 id="freeSlots">0</h3>
+            <p>Свободно</p>
+        </div>
+        <div class="stat">
+            <h3 id="totalRequests">0</h3>
+            <p>Заявок</p>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Расписание консультаций</h2>
+        <div id="schedule" class="schedule"></div>
+    </section>
+
+    <section class="panel">
+        <h2>Записаться на консультацию</h2>
 
         <form id="bookingForm">
-            <label>Имя студента</label>
-            <input type="text" id="student" required>
+            <label for="student">Имя студента</label>
+            <input type="text" id="student" maxlength="100"
+                   placeholder="Введите имя" required>
 
-            <label>Преподаватель</label>
+            <label for="topic">Тема консультации</label>
+            <input type="text" id="topic" maxlength="100"
+                   placeholder="Например, Python" required>
+
+            <label for="teacher">Преподаватель</label>
             <select id="teacher" required>
                 <option value="">Выберите преподавателя</option>
-                <option>Иванов И.И.</option>
-                <option>Петрова А.А.</option>
-                <option>Сидоров Б.Б.</option>
+                <option value="Иванов">Иванов</option>
+                <option value="Петров">Петров</option>
             </select>
 
-            <label>Дата</label>
+            <label for="date">Дата консультации</label>
             <input type="date" id="date" required>
 
-            <label>Время</label>
-            <select id="time" required>
-                <option value="">Выберите время</option>
-                <option>10:00</option>
-                <option>11:00</option>
-                <option>12:00</option>
-                <option>14:00</option>
-                <option>15:00</option>
-            </select>
+            <label for="start">Время начала</label>
+            <input type="time" id="start" required>
 
-            <label>Тема консультации</label>
-            <input type="text" id="topic" required>
+            <label for="end">Время окончания</label>
+            <input type="time" id="end" required>
 
             <button type="submit">Записаться</button>
         </form>
 
-        <p id="message"></p>
+        <p id="message" role="status" aria-live="polite"></p>
+    </section>
 
-        <h2>Расписание записей</h2>
+    <section class="panel">
+        <h2>Заявки студентов</h2>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Студент</th>
-                        <th>Преподаватель</th>
-                        <th>Дата</th>
-                        <th>Время</th>
-                        <th>Тема</th>
-                        <th>Действие</th>
-                    </tr>
-                </thead>
-                <tbody id="bookingList"></tbody>
-            </table>
-        </div>
-    </div>
+        <input type="text" id="search"
+               placeholder="Поиск по имени студента">
 
-    <script src="script.js"></script>
+        <div id="requests"></div>
+    </section>
+</main>
+
+<footer>
+    <p>Учебный проект по технологии программирования</p>
+</footer>
+
+<script src="сро.js"></script>
 </body>
 </html>
