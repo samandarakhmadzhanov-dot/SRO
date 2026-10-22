@@ -1,22 +1,36 @@
 
 const slots = [
-    { id: 1, teacher: "Иванов", date: "2026-10-20",
-      start: "10:00", end: "10:30" },
-    { id: 2, teacher: "Иванов", date: "2026-10-20",
-      start: "10:30", end: "11:00" },
-    { id: 3, teacher: "Иванов", date: "2026-10-20",
-      start: "11:00", end: "11:30" },
-    { id: 4, teacher: "Петров", date: "2026-10-21",
-      start: "12:00", end: "12:30" },
-    { id: 5, teacher: "Петров", date: "2026-10-21",
-      start: "12:30", end: "13:00" }
+    { id: 1, teacher: "Иванов", date: "2026-10-22", start: "10:00", end: "10:30" },
+    { id: 2, teacher: "Иванов", date: "2026-10-22", start: "10:30", end: "11:00" },
+    { id: 3, teacher: "Иванов", date: "2026-10-22", start: "11:00", end: "11:30" },
+    { id: 4, teacher: "Петров", date: "2026-10-23", start: "12:00", end: "12:30" },
+    { id: 5, teacher: "Петров", date: "2026-10-23", start: "12:30", end: "13:00" }
 ];
 
-let requests = [];
-let nextId = 1;
+let requests = JSON.parse(localStorage.getItem("requests")) || [];
+let nextId = Number(localStorage.getItem("nextId")) || 1;
 
 const form = document.getElementById("bookingForm");
 const message = document.getElementById("message");
+
+const studentInput = document.getElementById("student");
+const topicInput = document.getElementById("topic");
+
+studentInput.value = sessionStorage.getItem("student") || "";
+topicInput.value = sessionStorage.getItem("topic") || "";
+
+studentInput.addEventListener("input", function() {
+    sessionStorage.setItem("student", studentInput.value);
+});
+
+topicInput.addEventListener("input", function() {
+    sessionStorage.setItem("topic", topicInput.value);
+});
+
+function saveRequests() {
+    localStorage.setItem("requests", JSON.stringify(requests));
+    localStorage.setItem("nextId", nextId);
+}
 
 function renderSchedule() {
     const schedule = document.getElementById("schedule");
@@ -37,9 +51,8 @@ function renderSchedule() {
         title.textContent = "Слот №" + slot.id;
 
         const info = document.createElement("p");
-        info.textContent =
-            slot.teacher + " | " + slot.date + " | " +
-            slot.start + "–" + slot.end;
+        info.textContent = slot.teacher + " | " + slot.date +
+            " | " + slot.start + "–" + slot.end;
 
         const status = document.createElement("p");
         status.className = busy ? "busy" : "free";
@@ -105,8 +118,9 @@ function renderRequests() {
         button.className = "cancel";
         button.textContent = "Отменить заявку";
 
-        button.addEventListener("click", () => {
+        button.addEventListener("click", function() {
             requests = requests.filter(item => item.id !== request.id);
+            saveRequests();
             renderAll();
             showMessage("Заявка отменена. Время освобождено.", true);
         });
@@ -129,8 +143,8 @@ function renderAll() {
 form.addEventListener("submit", function(event) {
     event.preventDefault();
 
-    const student = document.getElementById("student").value.trim();
-    const topic = document.getElementById("topic").value.trim();
+    const student = studentInput.value.trim();
+    const topic = topicInput.value.trim();
     const teacher = document.getElementById("teacher").value;
     const date = document.getElementById("date").value;
     const start = document.getElementById("start").value;
@@ -159,7 +173,12 @@ form.addEventListener("submit", function(event) {
         return;
     }
 
-    if (date < "2026-10-18") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(date + "T00:00:00");
+
+    if (selectedDate < today) {
         showMessage("Нельзя записаться на прошедшую дату.", false);
         return;
     }
@@ -189,10 +208,7 @@ form.addEventListener("submit", function(event) {
     );
 
     if (!slotExists) {
-        showMessage(
-            "Выберите время внутри свободного слота расписания.",
-            false
-        );
+        showMessage("Выберите время внутри свободного слота расписания.", false);
         return;
     }
 
@@ -206,7 +222,12 @@ form.addEventListener("submit", function(event) {
         end
     });
 
+    saveRequests();
+
     form.reset();
+    sessionStorage.removeItem("student");
+    sessionStorage.removeItem("topic");
+
     renderAll();
     showMessage("Запись успешно создана!", true);
 });
